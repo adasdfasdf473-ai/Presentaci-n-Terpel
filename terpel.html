@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Presentación Terpel Voltex - Profesional</title>
+
+    <!-- Fuentes / utilidades -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root{
+            --bg: #f3f6fb;
+            --card: #ffffff;
+            --muted: #6b7280;
+            --accent: #1e6fb8;
+            --success: #10b981;
+            --radius: 14px;
+            --shadow: 0 12px 28px rgba(12, 18, 26, 0.08);
+        }
+        *{box-sizing:border-box}
+        html,body{height:100%}
+body{
+    margin:0;
+    font-family:'Inter',system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+    background:url('https://cdn.discordapp.com/attachments/1327528373408239739/1411254701994934293/terpel-vortex-punto-carga-rapida-colombia-c.png?ex=68b3fcdc&is=68b2ab5c&hm=403537eb51a5c11c7644ad0c1b4bf9687d79e228e3164c13968a85aedbde11cb&') no-repeat center center fixed;
+    background-size:cover;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:28px;
+}
+body::before{
+    content:'';
+    position:fixed;
+    inset:0;
+    backdrop-filter:blur(10px) brightness(0.9);
+    -webkit-backdrop-filter:blur(10px) brightness(0.9);
+    z-index:-1;
+}
+
+.img-wrap {
+  width:100%;
+  max-width:600px;   /* tamaño máximo del recuadro */
+  margin:20px auto;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 6px 20px rgba(0,0,0,0.25);
+}
+.img-wrap img {
+  width:100%;
+  height:auto;
+  display:block;
+  object-fit:contain;  /* mantiene proporciones sin recortar */
+}
+
+
+
+        /* Contenedor */
+        .presentation {
+            width:100%;
+            max-width:1100px;
+            background:var(--card);
+            border-radius:var(--radius);
+            box-shadow:var(--shadow);
+            overflow:hidden;
+            display:flex;
+            flex-direction:column;
+            border:1px solid rgba(15,23,42,0.04);
+            position:relative; /* añadido para overlay de fondo */
+        }
+
+        /* fondo difuminado **solo** detrás del área de diapositivas */
+        .slides-area { position:relative; overflow:visible; }
+        .slides-area::before{
+            content:'';
+            position:absolute;
+            inset:0;
+            border-radius:12px;
+            background-image: url('https://cdn.discordapp.com/attachments/1327528373408239739/1411250615060926586/images.png?ex=68b3f90e&is=68b2a78e&hm=b7b08727ceee564fda58c8a964e8dbe83b3e3d5ea1f6d08a28d5a86042bc4b26&');
+            background-size:cover;
+            background-position:center;
+            filter:blur(8px) brightness(0.88);
+            opacity:0.14;
+            z-index:0;
+            pointer-events:none;
+        }
+
+        /* asegurar contenido encima del fondo */
+        .presentation > * { position:relative; z-index:1; }
+        /* asegurar contenido de slides encima del overlay */
+        .slides-area > * { position:relative; z-index:1; }
+
+        /* Header */
+        .pres-header{
+            display:flex;
+            gap:16px;
+            align-items:center;
+            padding:18px 22px;
+            border-bottom:1px solid rgba(15,23,42,0.04);
+            background:linear-gradient(90deg, rgba(30,111,184,0.04), rgba(45,212,191,0.02));
+        }
+        .logo {
+            width:56px;
+            height:56px;
+            border-radius:10px;
+            overflow:hidden;
+            background:#52a0d9;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:white;
+            font-weight:700;
+            box-shadow:0 6px 16px rgba(16,24,40,0.06);
+        }
+        .pres-title{ display:flex; flex-direction:column; gap:2px; }
+        .pres-title h1{ margin:0; font-size:1.05rem; color:var(--accent); font-weight:700 }
+        .pres-title p{ margin:0; color:var(--muted); font-size:0.86rem }
+
+        .header-actions{ margin-left:auto; display:flex; gap:10px; align-items:center }
+        .chip{ background:linear-gradient(180deg,#fff,#f7fbff); padding:8px 12px; border-radius:999px; border:1px solid rgba(15,23,42,0.04); font-size:0.85rem; color:var(--muted) }
+
+        /* Body */
+        .pres-body{ padding:18px; display:flex; gap:18px; flex-direction:column; }
+        .slides-wrap{ display:flex; gap:18px; flex-direction:column; }
+
+        .slides-area{
+            background:linear-gradient(180deg, rgba(255,255,255,0.9), #ffffff);
+            border-radius:12px;
+            padding:18px;
+            box-shadow:0 6px 18px rgba(10,20,40,0.03);
+            min-height:48vh;
+            overflow:hidden;
+            border:1px solid rgba(15,23,42,0.03);
+            display:flex;
+            flex-direction:column;
+            gap:12px;
+        }
+
+        .slide { display:none; overflow:auto; padding-right:8px; }
+        .slide-active{ display:block }
+
+        h1,h2,h3{ color:#0b1220; margin:0 0 8px 0 }
+        h1{ font-size:1.45rem }
+        h2{ font-size:1.05rem; color:#134e8a }
+        p,li{ color:var(--muted); line-height:1.6; margin:0 0 10px 0 }
+
+        .content-row{ display:flex; gap:18px; align-items:flex-start }
+        .col{ flex:1 }
+        .aside{ width:280px; flex-shrink:0 }
+
+        .chart-card, #map { width:100%; border-radius:8px; height:320px; border:1px solid rgba(15,23,42,0.04); background:linear-gradient(180deg,#fff,#fbfdff); padding:8px; }
+
+        .narrator {
+            display:flex;
+            gap:10px;
+            align-items:center;
+            background:linear-gradient(90deg, rgba(30,111,184,0.04), rgba(30,111,184,0.01));
+            padding:12px;
+            border-radius:10px;
+            border-left:4px solid rgba(30,111,184,0.14);
+        }
+        .narrator p{ margin:0; color:#0f172a; font-size:0.95rem; }
+        .narrator .buttons{ margin-left:auto; display:flex; gap:8px }
+        .btn {
+            border:0; cursor:pointer; padding:8px 12px; border-radius:999px; font-weight:600;
+            box-shadow:0 8px 18px rgba(19,78,138,0.08);
+        }
+        .btn-primary{ background:var(--accent); color:#fff }
+        .btn-ghost{ background:transparent; border:1px solid rgba(19,78,138,0.08); color:var(--accent) }
+
+        /* Footer / nav */
+        .pres-footer{ display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-top:1px solid rgba(15,23,42,0.04) }
+        .nav{ display:flex; gap:10px }
+        .nav .nav-btn{ padding:10px 16px; border-radius:999px; border:0; cursor:pointer; font-weight:700 }
+        .nav .nav-btn.primary{ background:linear-gradient(180deg,var(--accent),#134e8a); color:#fff }
+        .nav .nav-btn.disabled{ opacity:0.5; cursor:not-allowed; background:#e6eef9; color:var(--muted) }
+
+        .progress { width:300px; height:8px; background:rgba(15,23,42,0.04); border-radius:999px; overflow:hidden }
+        .progress > i{ display:block; height:100%; width:0%; background:linear-gradient(90deg,var(--accent),#2dd4bf); transition:width .35s ease }
+
+        /* Responsive */
+        @media (max-width:980px){
+            .aside{ display:none }
+            .content-row{ flex-direction:column }
+            .chart-card, #map{ height:260px }
+            .pres-body { padding:14px }
+        }
+        @media (max-width:640px){
+            .pres-header{ padding:12px }
+            .pres-body{ padding:12px }
+            .progress{ width:180px }
+        }
+
+
+
+
+
+
+        /* ====== Mejora visual con transparencia, blur y efectos ====== */
+
+body{
+  background:url('https://cdn.discordapp.com/attachments/1327528373408239739/1411254701994934293/terpel-vortex-punto-carga-rapida-colombia-c.png') no-repeat center center fixed;
+  background-size:cover;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding:28px;
+}
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  backdrop-filter:blur(14px) brightness(0.85);
+  -webkit-backdrop-filter:blur(14px) brightness(0.85);
+  z-index:-1;
+}
+
+/* Contenedor principal */
+.presentation {
+  background:rgba(255,255,255,0.9);
+  border-radius:16px;
+  box-shadow:0 12px 28px rgba(0,0,0,0.15);
+  border:1px solid rgba(255,255,255,0.2);
+  animation:fadeIn 0.8s ease;
+}
+
+/* Encabezado */
+.pres-header{
+  background:rgba(30,111,184,0.12);
+  backdrop-filter:blur(8px);
+}
+
+/* Logo */
+.logo {
+  background:linear-gradient(135deg,#1e6fb8,#38b2ac);
+  color:white;
+  font-size:1.4rem;
+  box-shadow:0 8px 16px rgba(0,0,0,0.2);
+}
+
+/* Área de diapositivas */
+.slides-area{
+  background:rgba(255,255,255,0.7);
+  border-radius:14px;
+  padding:22px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.1);
+  transition:all 0.3s ease;
+}
+.slides-area:hover{ transform:scale(1.01); }
+
+/* Tarjetas */
+.chart-card{
+  background:rgba(255,255,255,0.6);
+  backdrop-filter:blur(4px);
+  border-radius:10px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.1);
+  transition:transform 0.3s ease;
+}
+.chart-card:hover{ transform:scale(1.02); }
+
+/* Narrador */
+.narrator{
+  background:rgba(30,111,184,0.08);
+  border-left:4px solid #1e6fb8;
+}
+
+/* Botones */
+.btn{
+  border:0;
+  cursor:pointer;
+  padding:8px 14px;
+  border-radius:999px;
+  font-weight:600;
+  transition:all 0.2s ease;
+}
+.btn-primary{background:#1e6fb8;color:#fff}
+.btn-primary:hover{background:#134e8a}
+.btn-ghost{background:transparent;border:1px solid #1e6fb8;color:#1e6fb8}
+.btn-ghost:hover{background:rgba(30,111,184,0.1)}
+
+/* Navegación */
+.nav .nav-btn{
+  padding:10px 18px;
+  border-radius:999px;
+  font-weight:700;
+  transition:all 0.2s ease;
+}
+.nav .nav-btn.primary{background:#1e6fb8;color:#fff}
+.nav .nav-btn.primary:hover{background:#134e8a}
+
+/* Animación */
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(15px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+
+body{
+    margin:0;
+    font-family:'Inter',system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+    background:url('https://cdn.discordapp.com/attachments/1327528373408239739/1411250615060926586/images.png?ex=68b3f90e&is=68b2a78e&hm=b7b08727ceee564fda58c8a964e8dbe83b3e3d5ea1f6d08a28d5a86042bc4b26&') no-repeat center center fixed;
+    background-size:cover;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:28px;
+}
+
+
+
+
+    </style>
+    
+</head>
+<body>
+
+<div class="presentation" role="application" aria-label="Presentación Terpel Voltex">
+
+    <header class="pres-header">
+        <div class="logo">V</div>
+        <div class="pres-title">
+            <h1>Terpel Voltex</h1>
+            <p>Movilidad eléctrica • Medellín — Resumen ejecutivo y hallazgos</p>
+        </div>
+
+        <div class="header-actions">
+            <div class="chip">Versión 1.1</div>
+            <div class="chip">Periodo 2020–2024</div>
+        </div>
+    </header>
+
+    <main class="pres-body">
+        <section class="slides-wrap">
+            <div class="slides-area" id="slides-area">
+
+                <!-- Slide 1 -->
+                <article id="slide-1" class="slide slide-active" data-narration="Presentación: análisis ejecutivo de Terpel Voltex en Medellín." data-explain="Este informe presenta un análisis integral de Terpel Voltex: contexto, metodología, resultados cuantitativos y recomendaciones estratégicas. Se busca ofrecer evidencia que apoye decisiones operativas y de inversión.">
+                    <div class="content-row">
+                        <div class="col">
+                            <h1>Análisis del Desempeño de Terpel Voltex</h1>
+                            <h2>El caso de la movilidad eléctrica en Medellín</h2>
+                            <p>Resumen ejecutivo: este documento sintetiza la expansión de la red de carga Voltex, patrones de demanda y recomendaciones estratégicas para consolidación y escala en el Valle de Aburrá.</p>
+                        </div>
+                        <aside class="aside">
+                            <img src="https://cdn.discordapp.com/attachments/1327528373408239739/1411253326950957066/imagen-removebg-preview.png?ex=68b3fb94&is=68b2aa14&hm=0c398f685edf8127bf4b693cf093e42aca5a4ca850e300cec0a5532cdfc2b355&" alt="Voltex" style="width:100%; border-radius:8px; box-shadow:0 8px 20px rgba(12,18,26,0.06)">
+                            <div style="height:12px"></div>
+                            <div class="chip" style="display:block; text-align:center">Presentado por: JOHAN MEDIMA</div>
+                        </aside>
+                    </div>
+                    <div style="height:8px"></div>
+                    <div class="narrator" role="region" aria-label="Narrador diapositiva 1">
+                        <p><strong>Narrador:</strong> Resumen y objetivo de la presentación.</p>
+                        <div class="buttons" style="margin-left:auto">
+                            <button class="btn btn-ghost" onclick="speakSlide(0,'narration')">🔊 Narrar</button>
+                            <button class="btn btn-primary" onclick="speakSlide(0,'explain')">💡 Explicar</button>
+                        </div>
+                    </div>
+                </article>
+
+<!-- Slide 2 -->
+<article id="slide-2" class="slide"
+  data-narration="Propósito y contexto: por qué Medellín y qué analiza el estudio."
+  data-explain="Medellín fue seleccionada por su liderazgo en adopción de movilidad eléctrica. Este estudio combina indicadores de adopción, geolocalización de infraestructura y costos operativos para entender la posición competitiva de Voltex.">
+
+  <h2>Propósito y Contexto</h2>
+  <p>Este estudio evalúa la respuesta estratégica de Terpel frente al crecimiento de vehículos eléctricos, con foco en su servicio Voltex en Medellín.</p>
+  <div style="height:12px"></div>
+
+  <div class="chart-card img-wrap">
+    <img src="https://cdn.discordapp.com/attachments/1327528373408239739/1411250255701217362/2f45d2e710b8-Beneficios-Sostenibilidad.png?ex=68b3f8b8&is=68b2a738&hm=0000cbae35d1cb5ccaeeedbd0f75435a0c3a557be31ff7dd5ad9b0448b91e9bc&"
+         alt="Contexto Medellín">
+  </div>
+
+  <div style="height:12px"></div>
+  <div class="narrator">
+    <p><strong>Narrador:</strong> Contexto y alcance del análisis.</p>
+    <div class="buttons">
+      <button class="btn btn-ghost" onclick="speakSlide(1,'narration')">🔊 Narrar</button>
+      <button class="btn btn-primary" onclick="speakSlide(1,'explain')">💡 Explicar</button>
+    </div>
+  </div>
+</article>
+
+                <!-- Slide 3 - Metodología -->
+                <article id="slide-3" class="slide" data-narration="Metodología: enfoque mixto cualitativo y cuantitativo." data-explain="Se empleó un enfoque mixto: análisis de datos de ventas, geolocalización de puntos de carga y revisión cualitativa de experiencia de usuario y comunicados corporativos, con periodo 2020–2024.">
+                    <h2>Metodología</h2>
+                    <p>Enfoque mixto: análisis cuantitativo (ventas, puntos de carga, precios) y cualitativo (experiencias y comunicaciones).</p>
+                    <div class="narrator">
+                        <p><strong>Narrador:</strong> Resumen del método usado.</p>
+                        <div class="buttons">
+                            <button class="btn btn-ghost" onclick="speakSlide(2,'narration')">🔊 Narrar</button>
+                            <button class="btn btn-primary" onclick="speakSlide(2,'explain')">💡 Explicar</button>
+                        </div>
+                    </div>
+
+                    <!-- Nuevo bloque: Medellín - Antes y Después (dos columnas) -->
+                    <div style="height:12px"></div>
+                    <div class="content-row" aria-label="Medellín: Antes y Después">
+                        <div class="col" style="min-width:0">
+                            <h3>Medellín: Antes de los VE</h3>
+                            <ul>
+                                <li>Dependencia total de combustibles fósiles (gasolina, ACPM, GNV).</li>
+                                <li>Limitaciones: alta contaminación, dependencia del petróleo, poca innovación.</li>
+                                <li>Terpel: servicio tradicional de combustibles. No existían electrolineras ni estrategias para vehículos eléctricos.</li>
+                            </ul>
+                        </div>
+                        <div class="col" style="min-width:0">
+                            <h3>Medellín: Después de los VE</h3>
+                            <ul>
+                                <li>Crecimiento exponencial: más de 16,000 vehículos eléctricos e híbridos registrados solo en 2023.</li>
+                                <li>Terpel crea “Voltex”: En 2019, Terpel apuesta por la electromovilidad, creando una nueva red de carga.</li>
+                                <li>Innovación: Desarrollo de estrategias para gestionar y monetizar la infraestructura de carga.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div style="height:6px"></div>
+                    <!-- /Nuevo bloque -->
+                </article>
+
+                <!-- Slide 4 - EV Growth -->
+                <article id="slide-4" class="slide" data-narration="Crecimiento de vehículos eléctricos en Colombia: gráfica." data-explain="Los datos estimados muestran una aceleración fuerte entre 2021 y 2024. Este fenómeno presiona la infraestructura y requiere escalamiento planificado de cargadores, redes inteligentes y soluciones de pico de demanda.">
+                    <h2>Crecimiento de Vehículos Eléctricos</h2>
+                    <p>La demanda por carga ha crecido exponencialmente; este gráfico muestra la tendencia estimada 2020–2024.</p>
+                    <div class="chart-card">
+                        <canvas id="chartEv"></canvas>
+                    </div>
+                    <div class="narrator">
+                        <p><strong>Narrador:</strong> Evolución de unidades registradas.</p>
+                        <div class="buttons">
+                            <button class="btn btn-ghost" onclick="speakSlide(3,'narration')">🔊 Narrar</button>
+                            <button class="btn btn-primary" onclick="speakSlide(3,'explain')">💡 Explicar</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 5 - Price Trends -->
+                <article id="slide-5" class="slide" data-narration="Tendencias de precio: gasolina vs electricidad." data-explain="La comparación de costos operativos por kilómetro revela que la electrificación es una ventaja económica clara. Se recomienda incluir tarifas dinámicas en puntos Voltex para optimizar cargas en horario valle.">
+                    <h2>Tendencia de Precios</h2>
+                    <p>Comparativa histórica entre gasolina y electricidad (COP), con implicaciones en costo por km.</p>
+                    <div class="chart-card">
+                        <canvas id="chartPriceTrends"></canvas>
+                    </div>
+                    <div class="narrator">
+                        <p><strong>Narrador:</strong> Breve interpretación de la gráfica.</p>
+                        <div class="buttons">
+                            <button class="btn btn-ghost" onclick="speakSlide(4,'narration')">🔊 Narrar</button>
+                            <button class="btn btn-primary" onclick="speakSlide(4,'explain')">💡 Explicar</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 6 - Competition -->
+                <article id="slide-6" class="slide" data-narration="Análisis de la competencia local: EPM, Enel X y otros." data-explain="Competidores principales muestran estrategias distintas: EPM con fuerza de redes eléctricas, Enel X con enfoque en carga rápida. Voltex compite por ubicación estratégica y conveniencia, lo que sugiere mayor foco en partnerships para puntos de alto tránsito.">
+                    <h2>Análisis de Competencia</h2>
+                    <p>Comparativa de puntos estimados entre actores relevantes.</p>
+                    <div class="chart-card">
+                        <canvas id="chartCompetition"></canvas>
+                    </div>
+                    <div class="narrator">
+                        <p><strong>Narrador:</strong> Posicionamiento relativo en Medellín.</p>
+                        <div class="buttons">
+                            <button class="btn btn-ghost" onclick="speakSlide(5,'narration')">🔊 Narrar</button>
+                            <button class="btn btn-primary" onclick="speakSlide(5,'explain')">💡 Explicar</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 7 - Segmentation -->
+                <article id="slide-7" class="slide" data-narration="Segmentación de clientes de Voltex." data-explain="La segmentación muestra predominio de usuarios particulares seguido por flotas y taxis. La estrategia comercial debe balancear atención a usuarios ocasionales y contratos B2B para garantizar utilización constante de la red.">
+                    <h2>Segmentación de Clientes</h2>
+                    <p>Distribución por tipo de usuario: particulares, taxis, empresas y otros.</p>
+                    <div class="chart-card">
+                        <canvas id="chartSegmentation"></canvas>
+                    </div>
+                    <div class="narrator">
+                        <p><strong>Narrador:</strong> Perfil de usuarios y oportunidades.</p>
+                        <div class="buttons">
+                            <button class="btn btn-ghost" onclick="speakSlide(6,'narration')">🔊 Narrar</button>
+                            <button class="btn btn-primary" onclick="speakSlide(6,'explain')">💡 Explicar</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 8 - Map (Colombia + Medellín rojo) -->
+                <article id="slide-8" class="slide" data-narration="Mapa interactivo: puntos Voltex en Colombia y punto rojo para Medellín." data-explain="Se muestran puntos estimados de Voltex en Colombia. Medellín se destaca con un marcador rojo para señalar alta concentración y prioridad operativa. Estos puntos deben validarse con datos de campo para optimizar rutas y capacidad.">
+                    <h2>Mapa de Ubicaciones (Colombia)</h2>
+                    <p>Ubicaciones estimadas de electrolineras Voltex; marcador rojo indica Medellín como nodo clave.</p>
+                    <div id="map"></div>
+                    <div style="height:8px"></div>
+                    <div class="narrator">
+                        <p><strong>Narrador:</strong> Geolocalización de puntos Voltex en Colombia.</p>
+                        <div class="buttons">
+                            <button class="btn btn-ghost" onclick="speakSlide(7,'narration')">🔊 Narrar</button>
+                            <button class="btn btn-primary" onclick="speakSlide(7,'explain')">💡 Explicar</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 9 - Synthesis -->
+                <article id="slide-9" class="slide" data-narration="Síntesis de hallazgos: visiones y recomendaciones." data-explain="Síntesis: Voltex tiene ventaja por ubicación y conveniencia. Recomendaciones: 1) Escalar puntos en corredores clave, 2) implementar tarifas dinámicas y alianzas B2B, 3) validar puntos con datos de uso para priorizar inversión.">
+                    <h2>Síntesis y Recomendaciones</h2>
+                    <ul>
+                        <li>Visión: Terpel transforma su oferta hacia la electromovilidad.</li>
+                        <li>Estrategia: Priorizar corredores urbanos con alta adopción.</li>
+                        <li>Operativo: Monitoreo en tiempo real para optimizar disponibilidad.</li>
+                    </ul>
+                    <div class="narrator">
+                        <p><strong>Narrador:</strong> Síntesis ejecutiva y próximos pasos.</p>
+                        <div class="buttons">
+                            <button class="btn btn-ghost" onclick="speakSlide(8,'narration')">🔊 Narrar</button>
+                            <button class="btn btn-primary" onclick="speakSlide(8,'explain')">💡 Explicar</button>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Slide 10 - Referencias -->
+                <article id="slide-10" class="slide" data-narration="Referencias bibliográficas usadas en el estudio." data-explain="Listado de fuentes (ANDEMOS, UPME y textos metodológicos) y recomendaciones para levantar datos primarios complementarios: visitas de campo, telemetría y encuestas a usuarios.">
+                    <h2>Referencias</h2>
+                    <ul>
+                        <li>ANDEMOS. (2024). Informe de ventas de vehículos eléctricos e híbridos en Colombia.</li>
+                        <li>UPME. (2023). Proyecciones de demanda de vehículos eléctricos en Colombia.</li>
+                        <li>Hernández Sampieri et al. Metodología de la investigación científica.</li>
+                    </ul>
+                    <div class="narrator">
+                        <p><strong>Narrador:</strong> Fuentes y recomendaciones para validación.</p>
+                        <div class="buttons">
+                            <button class="btn btn-ghost" onclick="speakSlide(9,'narration')">🔊 Narrar</button>
+                            <button class="btn btn-primary" onclick="speakSlide(9,'explain')">💡 Explicar</button>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+
+            <!-- Controls -->
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px">
+                <div style="display:flex; gap:12px; align-items:center">
+                    <div class="chip">Diapositiva <strong id="current">1</strong>/<span id="total">10</span></div>
+                    <div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+                </div>
+
+                <div class="nav">
+                    <button id="prev" class="nav-btn primary disabled" aria-label="Anterior">Anterior</button>
+                    <button id="next" class="nav-btn primary" aria-label="Siguiente">Siguiente</button>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <footer class="pres-footer">
+        <div style="color:var(--muted); font-size:0.9rem">Atajos: ← → · Escuchar / Explicar</div>
+        <div style="display:flex; gap:10px">
+            <a class="chip" href="#" onclick="exportPDF();return false">Exportar PDF</a>
+            <a class="chip" href="#" onclick="viewData();return false">Ver datos</a>
+        </div>
+    </footer>
+
+</div>
+
+<script>
+    // estado
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const total = slides.length;
+    const currentEl = document.getElementById('current');
+    const totalEl = document.getElementById('total');
+    const progressBar = document.getElementById('progressBar');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+    let idx = 0;
+    let mapReady = false;
+    let charts = {};
+
+    totalEl.textContent = total;
+
+    function show(i){
+        if(i<0) i=0;
+        if(i>=total) i=total-1;
+        slides.forEach((s, n) => {
+            s.classList.toggle('slide-active', n===i);
+            s.style.display = n===i ? 'block' : 'none';
+        });
+        idx = i;
+        currentEl.textContent = idx+1;
+        progressBar.style.width = `${Math.round(((idx+1)/total)*100)}%`;
+        prevBtn.classList.toggle('disabled', idx===0);
+        nextBtn.classList.toggle('disabled', idx===total-1);
+
+        // lazy init charts / map by slide index
+        const slideId = slides[idx].id;
+        if(slideId === 'slide-4') initEvChart();
+        if(slideId === 'slide-5') initPriceTrends();
+        if(slideId === 'slide-6') initCompetition();
+        if(slideId === 'slide-7') initSegmentation();
+        if(slideId === 'slide-8' && !mapReady) { initMap(); mapReady = true; }
+    }
+
+    prevBtn.addEventListener('click', ()=> { if(idx>0) show(idx-1); });
+    nextBtn.addEventListener('click', ()=> { if(idx<total-1) show(idx+1); });
+
+    window.addEventListener('keydown', (e)=>{
+        if(e.key === 'ArrowLeft') prevBtn.click();
+        if(e.key === 'ArrowRight') nextBtn.click();
+        if(e.key === 'Escape') window.speechSynthesis.cancel();
+    });
+
+    // Charts
+    function initEvChart(){
+        if(charts.ev) return;
+        const ctx = document.getElementById('chartEv').getContext('2d');
+        charts.ev = new Chart(ctx, {
+            type:'line',
+            data:{ labels:['2020','2021','2022','2023','2024'], datasets:[{ label:'Unidades', data:[3665,5028,8299,12500,18500], borderColor:'#1e6fb8', backgroundColor:'rgba(30,111,184,0.12)', tension:0.3, fill:true }] },
+            options:{ maintainAspectRatio:false, responsive:true, scales:{ y:{ beginAtZero:true } } }
+        });
+    }
+    function initPriceTrends(){
+        if(charts.price) return;
+        const ctx = document.getElementById('chartPriceTrends').getContext('2d');
+        charts.price = new Chart(ctx, {
+            type:'line',
+            data:{
+                labels:['2020','2021','2022','2023','2024'],
+                datasets:[
+                    { label:'Gasolina (COP/galón)', data:[8500,9500,10500,14000,15500], borderColor:'#e53e3e', tension:0.25, fill:false },
+                    { label:'Electricidad (COP/kWh)', data:[500,520,550,580,600], borderColor:'#3182ce', tension:0.25, fill:false }
+                ]
+            },
+            options:{ maintainAspectRatio:false, responsive:true, plugins:{ legend:{ position:'bottom' } } }
+        });
+    }
+    function initCompetition(){
+        if(charts.comp) return;
+        const ctx = document.getElementById('chartCompetition').getContext('2d');
+        charts.comp = new Chart(ctx, {
+            type:'bar',
+            data:{ labels:['Terpel Voltex','EPM','Enel X'], datasets:[{ data:[30,25,20], backgroundColor:['#1c52a0','#38b2ac','#a0aec0'], borderRadius:6 }] },
+            options:{ maintainAspectRatio:false, responsive:true, scales:{ y:{ beginAtZero:true } }, plugins:{ legend:{ display:false } } }
+        });
+    }
+    function initSegmentation(){
+        if(charts.seg) return;
+        const ctx = document.getElementById('chartSegmentation').getContext('2d');
+        charts.seg = new Chart(ctx, {
+            type:'doughnut',
+            data:{ labels:['Particulares','Taxis','Empresas','Otros'], datasets:[{ data:[45,30,15,10], backgroundColor:['#60a5fa','#34d399','#fbbf24','#a0aec0'] }] },
+            options:{ maintainAspectRatio:false, responsive:true, plugins:{ legend:{ position:'bottom' } } }
+        });
+    }
+
+    // Map: Colombia view + red Medellín marker + otros puntos
+    function initMap(){
+        const mapEl = document.getElementById('map');
+        mapEl.style.height = '420px';
+        const map = L.map('map', { scrollWheelZoom:false }).setView([4.0, -72.5], 5); // Colombia view
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution:'&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // iconos
+        const redIcon = L.icon({ iconUrl:'https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png', iconSize:[32,32], iconAnchor:[16,32] });
+        const blueIcon = L.icon({ iconUrl:'https://maps.gstatic.com/mapfiles/ms2/micons/blue-dot.png', iconSize:[32,32], iconAnchor:[16,32] });
+
+        // marcadores ejemplo: Medellín rojo + otros azules
+        const pts = [
+            { lat:6.2442, lng:-75.5812, name:'Medellín (Nodo principal)', icon:redIcon },
+            { lat:4.7109, lng:-74.0721, name:'Bogotá', icon:blueIcon },
+            { lat:3.4516, lng:-76.5320, name:'Cali', icon:blueIcon },
+            { lat:10.9685, lng:-74.7813, name:'Barranquilla', icon:blueIcon },
+            { lat:6.2081, lng:-75.5786, name:'Envigado (Punto estimado)', icon:blueIcon },
+            { lat:6.2201, lng:-75.5684, name:'El Poblado (Punto estimado)', icon:blueIcon }
+        ];
+
+        pts.forEach(p=>{
+            const m = L.marker([p.lat,p.lng], { icon:p.icon }).addTo(map);
+            m.bindPopup(`<strong>${p.name}</strong><br>Punto de carga Voltex (estimado)`);
+        });
+
+        // ajustar bounds
+        const bounds = pts.map(p=>[p.lat,p.lng]);
+        map.fitBounds(bounds, { padding:[60,60] });
+
+        // refresh when visible
+        setTimeout(()=> map.invalidateSize(), 300);
+    }
+
+    // Narrador: lectura simple (narration) y explicación extendida (explain)
+    function speak(text){
+        if(!('speechSynthesis' in window)) return alert('Tu navegador no soporta síntesis de voz.');
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'es-CO';
+        u.rate = 0.98;
+        u.pitch = 1;
+        window.speechSynthesis.speak(u);
+    }
+
+    function speakSlide(slideIndex, mode){
+        const slide = slides[slideIndex];
+        if(!slide) return;
+        const short = slide.dataset.narration || slide.textContent.slice(0,200);
+        const ext = slide.dataset.explain || (short + ' Más detalles disponibles en la presentación.');
+        speak(mode === 'explain' ? ext : short);
+    }
+
+    // funciones utilitarias (placeholders)
+    function exportPDF(){ alert('Función exportar PDF - pendiente de implementación.'); }
+    function viewData(){ alert('Función ver datos - pendiente de implementación.'); }
+
+    // inicio
+    window.addEventListener('load', ()=> { show(0); });
+
+</script>
+
+</body>
+</html>
