@@ -1,3 +1,4 @@
+asi estara bien m icodigo?
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -77,18 +78,20 @@ body::before{
         }
 
         /* fondo difuminado **solo** detrás del área de diapositivas */
-.slides-area::before{
-    content:'';
-    position:absolute;
-    inset:0;
-    border-radius:12px;
-    background:url('./images/imagen.png') no-repeat center/cover;
-    filter:blur(8px) brightness(0.88);
-    opacity:0.14;
-    z-index:0;
-    pointer-events:none;
-}
-
+        .slides-area { position:relative; overflow:visible; }
+        .slides-area::before{
+            content:'';
+            position:absolute;
+            inset:0;
+            border-radius:12px;
+            <img src="./images/imagen.png" alt="Logo">
+            background-size:cover;
+            background-position:center;
+            filter:blur(8px) brightness(0.88);
+            opacity:0.14;
+            z-index:0;
+            pointer-events:none;
+        }
 
         /* asegurar contenido encima del fondo */
         .presentation > * { position:relative; z-index:1; }
@@ -722,6 +725,5 @@ body{
 
 </body>
 </html>
-
 
 
