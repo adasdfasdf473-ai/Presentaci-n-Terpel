@@ -27,8 +27,8 @@
 body{
     margin:0;
     font-family:'Inter',system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
-    background:url('https://cdn.discordapp.com/attachments/1327528373408239739/1411254701994934293/terpel-vortex-punto-carga-rapida-colombia-c.png?ex=68b3fcdc&is=68b2ab5c&hm=403537eb51a5c11c7644ad0c1b4bf9687d79e228e3164c13968a85aedbde11cb&') no-repeat center center fixed;
-    background-size:cover;
+    background: url('./images/terpel.png') no-repeat center center fixed;
+  background-size: cover;
     -webkit-font-smoothing:antialiased;
     -moz-osx-font-smoothing:grayscale;
     display:flex;
@@ -77,20 +77,18 @@ body::before{
         }
 
         /* fondo difuminado **solo** detrás del área de diapositivas */
-        .slides-area { position:relative; overflow:visible; }
-        .slides-area::before{
-            content:'';
-            position:absolute;
-            inset:0;
-            border-radius:12px;
-            background-image: url('https://cdn.discordapp.com/attachments/1327528373408239739/1411250615060926586/images.png?ex=68b3f90e&is=68b2a78e&hm=b7b08727ceee564fda58c8a964e8dbe83b3e3d5ea1f6d08a28d5a86042bc4b26&');
-            background-size:cover;
-            background-position:center;
-            filter:blur(8px) brightness(0.88);
-            opacity:0.14;
-            z-index:0;
-            pointer-events:none;
-        }
+.slides-area::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    border-radius:12px;
+    background:url('./images/imagen.png') no-repeat center/cover;
+    filter:blur(8px) brightness(0.88);
+    opacity:0.14;
+    z-index:0;
+    pointer-events:none;
+}
+
 
         /* asegurar contenido encima del fondo */
         .presentation > * { position:relative; z-index:1; }
@@ -724,5 +722,6 @@ body{
 
 </body>
 </html>
+
 
 
